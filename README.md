@@ -1,23 +1,25 @@
-# NextLeads — Version finale React
+# NextLeads — Version finale connectée Google Forms
 
-Version finale indépendante inspirée du rendu Base44 validé.
+Cette version connecte les demandes de devis au Google Form :
 
-Cette version garde :
-- le style clair premium Base44
-- les visuels humains
-- les cartes dashboard
-- les sections commerciales NextLeads
-- le prix à partir de 6 € / lead ciblé
-- le pack test payant sur demande
-- le formulaire de demande de devis
+https://docs.google.com/forms/d/e/1FAIpQLSfL6ckgmY2Ex0lVJHoJmq6xIOSGKQ9RpDXP8JoAE8vuI7WTcQ/viewform?usp=header
 
-Cette version retire volontairement :
-- le SDK Base44
-- l'authentification Base44
-- les pages login/register/reset password
-- le plugin Base44
+## Fonctionnement
 
-Objectif : permettre un déploiement gratuit sur GitHub + Vercel ou Netlify.
+```text
+Boutons du site
+→ Section Contact
+→ Google Form intégré
+→ Google Sheets "Suivi demandes NextLeads"
+```
+
+Les demandes arrivent automatiquement dans Google Sheets via Google Forms.
+
+## Déploiement
+
+1. Upload les fichiers sur GitHub dans le repository `nextleads-site`
+2. Commit changes
+3. Vercel redéploie automatiquement
 
 ## Installation locale
 
@@ -31,21 +33,3 @@ npm run dev
 ```bash
 npm run build
 ```
-
-## Déploiement Vercel
-
-1. Crée un repository GitHub.
-2. Upload tous les fichiers du dossier.
-3. Connecte le repository à Vercel.
-4. Framework : Vite.
-5. Build command : `npm run build`.
-6. Output directory : `dist`.
-
-## Formulaire
-
-Le formulaire ouvre un email pré-rempli vers `contact@nextleads.fr`.
-
-Pour recevoir les demandes directement sans ouverture du client mail, connecte ensuite :
-- Formspree
-- Netlify Forms
-- ou un backend personnalisé
