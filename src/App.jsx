@@ -42,8 +42,19 @@ const IMAGES = {
   process: "https://media.base44.com/images/public/6a1a1b0e3bc696ff6b8633c1/965ec6eca_generated_772b5a1a.png",
 };
 
-const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfL6ckgmY2Ex0lVJHoJmq6xIOSGKQ9RpDXP8JoAE8vuI7WTcQ/viewform?usp=header";
-const GOOGLE_FORM_EMBED_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfL6ckgmY2Ex0lVJHoJmq6xIOSGKQ9RpDXP8JoAE8vuI7WTcQ/viewform?embedded=true";
+const GOOGLE_FORM_RESPONSE_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfL6ckgmY2Ex0lVJHoJmq6xIOSGKQ9RpDXP8JoAE8vuI7WTcQ/formResponse";
+const GOOGLE_FORM_VIEW_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfL6ckgmY2Ex0lVJHoJmq6xIOSGKQ9RpDXP8JoAE8vuI7WTcQ/viewform?usp=header";
+
+const GOOGLE_FORM_ENTRIES = {
+  nom: "entry.2020656799",
+  societe: "entry.1420934706",
+  telephone: "entry.188096982",
+  email: "entry.1506560305",
+  secteur: "entry.177023606",
+  zone: "entry.926475078",
+  volume: "entry.778147516",
+  message: "entry.139607335",
+};
 
 const scrollTo = (id) => document.querySelector(id)?.scrollIntoView({ behavior: "smooth" });
 
@@ -671,43 +682,142 @@ function CTASection() {
 }
 
 function ContactSection() {
+  const [submitted, setSubmitted] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
+  const sectors = ["Énergie", "Pompe à chaleur", "Solaire", "Rénovation", "Immobilier", "Assurance", "Télécom", "Services B2C", "Autre"];
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSending(true);
+    setError("");
+
+    const form = new FormData(e.currentTarget);
+    const data = {
+      nom: form.get("nom") || "",
+      societe: form.get("societe") || "",
+      telephone: form.get("telephone") || "",
+      email: form.get("email") || "",
+      secteur: form.get("secteur") || "",
+      zone: form.get("zone") || "",
+      volume: form.get("volume") || "",
+      message: form.get("message") || "",
+    };
+
+    const googleFormData = new FormData();
+    googleFormData.append(GOOGLE_FORM_ENTRIES.nom, data.nom);
+    googleFormData.append(GOOGLE_FORM_ENTRIES.societe, data.societe);
+    googleFormData.append(GOOGLE_FORM_ENTRIES.telephone, data.telephone);
+    googleFormData.append(GOOGLE_FORM_ENTRIES.email, data.email);
+    googleFormData.append(GOOGLE_FORM_ENTRIES.secteur, data.secteur);
+    googleFormData.append(GOOGLE_FORM_ENTRIES.zone, data.zone);
+    googleFormData.append(GOOGLE_FORM_ENTRIES.volume, data.volume);
+    googleFormData.append(GOOGLE_FORM_ENTRIES.message, data.message);
+
+    try {
+      await fetch(GOOGLE_FORM_RESPONSE_URL, {
+        method: "POST",
+        mode: "no-cors",
+        body: googleFormData,
+      });
+
+      setSubmitted(true);
+      e.currentTarget.reset();
+    } catch (err) {
+      setError("La demande n'a pas pu être envoyée. Vous pouvez aussi ouvrir le formulaire de secours.");
+    } finally {
+      setSending(false);
+    }
+  };
+
   return (
     <section id="contact" className="py-20 lg:py-28 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center max-w-2xl mx-auto mb-12">
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center max-w-2xl mx-auto mb-16">
           <SectionLabel>Contact</SectionLabel>
           <h2 className="font-heading font-bold text-3xl lg:text-4xl text-foreground">Demandez un devis ou un pack test</h2>
-          <p className="mt-4 text-muted">
-            Remplissez le formulaire ci-dessous. Votre demande sera automatiquement enregistrée dans le tableau de suivi NextLeads.
-          </p>
+          <p className="mt-4 text-muted">Remplissez le formulaire ci-dessous. Votre demande sera automatiquement ajoutée au tableau de suivi NextLeads.</p>
           <p className="mt-3 text-sm text-muted max-w-xl mx-auto">
             Le pack test permet de commander un petit volume de leads ciblés afin d'évaluer la qualité des contacts avant un volume plus important. Tarif : à partir de 6 € / lead ciblé.
           </p>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-2xl border border-border/60 shadow-lg overflow-hidden">
-            <iframe
-              src={GOOGLE_FORM_EMBED_URL}
-              title="Demande de devis NextLeads"
-              className="w-full h-[980px] border-0"
-              loading="lazy"
-            >
-              Chargement du formulaire…
-            </iframe>
-          </div>
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="max-w-2xl mx-auto">
+          {submitted ? (
+            <div className="bg-white rounded-2xl border border-border/60 shadow-lg p-10 text-center">
+              <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-6">
+                <CheckCircle className="w-8 h-8 text-emerald-600" />
+              </div>
+              <h3 className="font-heading font-bold text-xl text-foreground mb-2">Demande envoyée</h3>
+              <p className="text-muted">
+                Merci. Votre demande a bien été transmise et ajoutée au tableau de suivi NextLeads.
+              </p>
+              <Button variant="outline" className="mt-6" onClick={() => setSubmitted(false)}>
+                Envoyer une autre demande
+              </Button>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-border/60 shadow-lg p-8 lg:p-10 space-y-6">
+              {error && (
+                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {error}{" "}
+                  <a href={GOOGLE_FORM_VIEW_URL} target="_blank" rel="noreferrer" className="font-semibold underline">
+                    Ouvrir le formulaire de secours
+                  </a>
+                </div>
+              )}
 
-          <div className="text-center mt-6">
-            <a
-              href={GOOGLE_FORM_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center justify-center rounded-md text-sm font-heading font-semibold transition-all duration-300 h-11 px-6 bg-primary text-white shadow-lg shadow-primary/20 hover:bg-blue-700"
-            >
-              Ouvrir le formulaire dans un nouvel onglet
-              <ArrowRight className="ml-2 w-4 h-4" />
-            </a>
-          </div>
+              <div className="grid sm:grid-cols-2 gap-5">
+                <label className="space-y-2">
+                  <span className="text-sm font-medium text-foreground">Nom</span>
+                  <input name="nom" className="input" placeholder="Votre nom" required />
+                </label>
+                <label className="space-y-2">
+                  <span className="text-sm font-medium text-foreground">Société</span>
+                  <input name="societe" className="input" placeholder="Nom de votre entreprise" required />
+                </label>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-5">
+                <label className="space-y-2">
+                  <span className="text-sm font-medium text-foreground">Téléphone</span>
+                  <input name="telephone" type="tel" className="input" placeholder="06 00 00 00 00" required />
+                </label>
+                <label className="space-y-2">
+                  <span className="text-sm font-medium text-foreground">Email</span>
+                  <input name="email" type="email" className="input" placeholder="vous@entreprise.com" required />
+                </label>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-5">
+                <label className="space-y-2">
+                  <span className="text-sm font-medium text-foreground">Secteur recherché</span>
+                  <select name="secteur" className="input" required defaultValue="">
+                    <option value="" disabled>Sélectionnez un secteur</option>
+                    {sectors.map((s) => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </label>
+                <label className="space-y-2">
+                  <span className="text-sm font-medium text-foreground">Zone géographique</span>
+                  <input name="zone" className="input" placeholder="Ex: Île-de-France, national..." required />
+                </label>
+              </div>
+
+              <label className="space-y-2 block">
+                <span className="text-sm font-medium text-foreground">Volume souhaité</span>
+                <input name="volume" className="input" placeholder="Ex: 50, 100, 500 leads" required />
+              </label>
+
+              <label className="space-y-2 block">
+                <span className="text-sm font-medium text-foreground">Message</span>
+                <textarea name="message" rows={4} className="input min-h-[110px] py-3" placeholder="Décrivez votre besoin ou vos critères spécifiques..." />
+              </label>
+
+              <Button type="submit" className="w-full h-12 text-base" disabled={sending}>
+                {sending ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><Send className="w-4 h-4 mr-2" />Envoyer ma demande</>}
+              </Button>
+            </form>
+          )}
         </motion.div>
       </div>
     </section>
